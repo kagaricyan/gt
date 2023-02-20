@@ -10,6 +10,11 @@ import attackRecord from '../../assets/31-attack-record.json';
 import { AttackRecord } from '../../data';
 import * as echarts from 'echarts';
 
+type UserName = string;
+type LogDate = string;
+type BossName = string;
+type Damage = number;
+
 const chartRef = ref<HTMLElement>();
 const bossNameCorrect: Record<string, string> = {
   boss_nine_tailed_fox_guild: '水狐',
@@ -119,18 +124,19 @@ const buildOption = () => {
     bossRecord[bossName] = null;
   }
 
-  const userData = attackRecord.reduce<Record<string, AttackRecord[]>>((a, c) => {
+  const userData = attackRecord.reduce<Record<UserName, AttackRecord[]>>((a, c) => {
     a[c.user_name] = a[c.user_name] || [];
     a[c.user_name].push(c);
     return a;
   }, {});
-  const userBossData = Object.entries(userData).reduce((a, c) => {
-    a[c[0]] = c[1].reduce<Record<string, number>>((aa, cc) => {
+
+  const userBossData = Object.entries(userData).reduce<Record<UserName, Record<BossName, Damage>>>((a, c) => {
+    a[c[0]] = c[1].reduce<Record<BossName, Damage>>((aa, cc) => {
       aa[cc.boss.name] = (aa[cc.boss.name] || 0) + cc.damage;
       return aa;
     }, {});
     return a;
-  }, {} as Record<string, Record<string, number>>);
+  }, {});
 
   const usersSortByDamage = Object.keys(userBossData).sort((a, b) => {
     const aDamage = Object.values(userBossData[a]).reduce((a, c) => a + c, 0);
@@ -138,11 +144,21 @@ const buildOption = () => {
     return aDamage - bDamage;
   });
 
+  const userDayData = Object.entries(userData).reduce<Record<UserName, Record<LogDate, AttackRecord[]>>>((a, c) => {
+    a[c[0]] = c[1].reduce<Record<LogDate, AttackRecord[]>>((aa, cc) => {
+      const date = new Date(Number(`${ cc.log_time }000`)).toLocaleDateString().replaceAll('/', '-');
+      aa[date] = aa[date] || [];
+      aa[date].push(cc);
+      return aa;
+    }, {});
+    return a;
+  }, {});
+  console.log(userDayData);
+
   // @ts-ignore
   option.yAxis.data = usersSortByDamage;
   option.series = bosses.map(boss => {
     const originalBossName = bossNameCorrect[boss.split('--')[0]] ?? boss.split('--')[0];
-    console.log(originalBossName);
     return {
       name: boss,
       type: 'bar',
@@ -174,7 +190,6 @@ const buildOption = () => {
 };
 const init = () => {
   buildOption();
-  console.log(option);
   echarts.init(chartRef.value!).setOption(option);
 };
 
