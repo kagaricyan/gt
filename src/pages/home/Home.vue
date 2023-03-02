@@ -1,21 +1,42 @@
 <template>
   <div class="home">
-    <img class="fixed-top-left" src="../../assets/images/20230106.png" alt="会战logo">
+    <div style="margin: 20px;">
+      <label>
+        选择赛季：
+        <select v-model="selectedSeason" @change="reRender">
+          <template v-for="item in attackRecords">
+            <option :value="item.name">{{ item.name }}</option>
+          </template>
+        </select>
+      </label>
+    </div>
     <div class="chart" ref="chartRef"></div>
+    <button @click="saveImage">生成图片，长按保存</button>
+    <img :src="src" alt="图片">
   </div>
 </template>
 
 <script lang="ts" setup>
-import { onMounted, ref } from 'vue';
-import attackRecord from '../../assets/attact-record.json';
+import { computed, onMounted, ref } from 'vue';
+import attackRecords from '../../assets/data/index';
 import { AttackRecord } from '../../data';
 import * as echarts from 'echarts';
+import html2canvas from 'html2canvas';
 
 type UserName = string;
 type LogDate = string;
 type BossName = string;
 type Damage = number;
 
+const selectedSeason = ref(attackRecords[attackRecords.length - 1].name);
+
+const currentAttackRecord = computed<AttackRecord[]>(() => attackRecords.find(i => i.name === selectedSeason.value)!.data);
+
+const src = ref('');
+const saveImage = async () => {
+  const el = document.querySelector('.chart')! as HTMLElement;
+  src.value = (await html2canvas(el)).toDataURL();
+};
 const elementColors: Record<string, string> = {
   光: '#ffd71c',
   虚: '#5e778b',
@@ -25,6 +46,7 @@ const elementColors: Record<string, string> = {
   火: '#c24913',
 };
 
+let chart: echarts.EChartsType;
 const chartRef = ref<HTMLElement>();
 const bossNameCorrect: Record<string, string> = {
   boss_nine_tailed_fox_guild: '水狐',
@@ -64,6 +86,7 @@ const option: echarts.EChartsOption = {
   series: [],
 };
 const buildOption = () => {
+  const attackRecord = currentAttackRecord.value;
   let bosses: string[] = [];
   const bossRecord: Record<string, any> = {};
   for (let i = 0; i < attackRecord.length; i++) {
@@ -144,7 +167,16 @@ const buildOption = () => {
 };
 const init = () => {
   buildOption();
-  echarts.init(chartRef.value!).setOption(option);
+  chart = echarts.init(chartRef.value!);
+  chart.setOption(option);
+  window.addEventListener('resize', () => {
+    chart.resize();
+  });
+};
+
+const reRender = () => {
+  buildOption();
+  chart!.setOption(option);
 };
 
 onMounted(() => {
