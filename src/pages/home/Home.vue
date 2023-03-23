@@ -53,6 +53,10 @@ const bossNameCorrect: Record<string, string> = {
   水狐: 'boss_nine_tailed_fox_guild',
   boss_invader_director_guild: '导演',
   导演: 'boss_invader_director_guild',
+  boss_harvester_guild_fury: '蚊子',
+  蚊子: 'boss_harvester_guild_fury',
+  boss_graboid_guild_fury: '牛虫',
+  牛虫: 'boss_graboid_guild_fury',
 };
 const option: echarts.EChartsOption = {
   tooltip: {
