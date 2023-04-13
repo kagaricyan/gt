@@ -1,19 +1,19 @@
 <template>
-  <div class="home">
-    <div style="margin: 20px;">
-      <label>
-        选择赛季：
-        <select v-model="selectedSeason" @change="reRender">
-          <template v-for="item in attackRecords">
-            <option :value="item.name">{{ item.name }}</option>
-          </template>
-        </select>
-      </label>
+    <div class="home">
+        <div style="margin: 20px;">
+            <label>
+                选择赛季：
+                <select v-model="selectedSeason" @change="reRender">
+                    <template v-for="item in attackRecords">
+                        <option :value="item.name">{{ item.name }}</option>
+                    </template>
+                </select>
+            </label>
+        </div>
+        <div class="chart" ref="chartRef"></div>
+        <button @click="saveImage">生成图片，长按保存</button>
+        <img :src="src" alt="图片">
     </div>
-    <div class="chart" ref="chartRef"></div>
-    <button @click="saveImage">生成图片，长按保存</button>
-    <img :src="src" alt="图片">
-  </div>
 </template>
 
 <script lang="ts" setup>
@@ -57,6 +57,10 @@ const bossNameCorrect: Record<string, string> = {
   蚊子: 'boss_harvester_guild_fury',
   boss_graboid_guild_fury: '牛虫',
   牛虫: 'boss_graboid_guild_fury',
+  邓肯: 'boss_minister_guild',
+  boss_minister_guild: '邓肯',
+  帝国骑士: 'boss_robot_knight_new_guild',
+  boss_robot_knight_new_guild: '帝国骑士',
 };
 const option: echarts.EChartsOption = {
   tooltip: {
@@ -190,12 +194,12 @@ onMounted(() => {
 
 <style scoped>
 .fixed-top-left {
-  height: 60px;
-  margin: 40px 0 -80px 40px;
+    height: 60px;
+    margin: 40px 0 -80px 40px;
 }
 
 .chart {
-  height: 2200px;
-  padding-bottom: 60px;
+    height: 2200px;
+    padding-bottom: 60px;
 }
 </style>
