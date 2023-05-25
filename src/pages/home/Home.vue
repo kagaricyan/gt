@@ -1,25 +1,25 @@
 <template>
-    <div class="home">
-        <div style="margin: 20px;">
-            <label>
-                选择赛季：
-                <select v-model="selectedSeason" @change="reRender">
-                    <template v-for="item in attackRecords">
-                        <option :value="item.name">{{ item.name }}</option>
-                    </template>
-                </select>
-            </label>
-        </div>
-        <div class="chart" ref="chartRef"></div>
-        <button @click="saveImage">生成图片，长按保存</button>
-        <img :src="src" alt="图片">
+  <div class="home">
+    <div style="margin: 20px;">
+      <label>
+        选择赛季：
+        <select v-model="selectedSeason" @change="reRender">
+          <template v-for="item in attackRecords">
+            <option :value="item.name">{{ item.name }}</option>
+          </template>
+        </select>
+      </label>
     </div>
+    <div class="chart" ref="chartRef"></div>
+    <button @click="saveImage">生成图片，长按保存</button>
+    <img :src="src" alt="图片">
+  </div>
 </template>
 
 <script lang="ts" setup>
-import { computed, onMounted, ref } from 'vue';
+import {computed, onMounted, ref} from 'vue';
 import attackRecords from '../../assets/data/index';
-import { AttackRecord } from '../../data';
+import {AttackRecord} from '../../data';
 import * as echarts from 'echarts';
 import html2canvas from 'html2canvas';
 
@@ -50,17 +50,15 @@ let chart: echarts.EChartsType;
 const chartRef = ref<HTMLElement>();
 const bossNameCorrect: Record<string, string> = {
   boss_nine_tailed_fox_guild: '水狐',
-  水狐: 'boss_nine_tailed_fox_guild',
   boss_invader_director_guild: '导演',
-  导演: 'boss_invader_director_guild',
   boss_harvester_guild_fury: '蚊子',
-  蚊子: 'boss_harvester_guild_fury',
   boss_graboid_guild_fury: '牛虫',
-  牛虫: 'boss_graboid_guild_fury',
-  邓肯: 'boss_minister_guild',
   boss_minister_guild: '邓肯',
-  帝国骑士: 'boss_robot_knight_new_guild',
   boss_robot_knight_new_guild: '帝国骑士',
+  boss_portrait_guild_43th: '画像',
+  boss_admiral_guild_43th_modified: '船长',
+  boss_admiral_guild_43th: '船长',
+  boss_mech_guild_fury_43th: '熊猫',
 };
 const option: echarts.EChartsOption = {
   tooltip: {
@@ -93,6 +91,7 @@ const option: echarts.EChartsOption = {
   },
   series: [],
 };
+const unselectedLegend: string[] = [];
 const buildOption = () => {
   const attackRecord = currentAttackRecord.value;
   let bosses: string[] = [];
@@ -103,24 +102,24 @@ const buildOption = () => {
       break;
     }
     const originalBoss = attackRecord[i].boss;
-    const bossName = `${ bossNameCorrect[originalBoss.name] ?? originalBoss.name }--${ originalBoss.elemental_type_cn }`;
+    const bossName = `${bossNameCorrect[originalBoss.name] ?? originalBoss.name}--${originalBoss.elemental_type_cn}`;
     bossRecord[bossName] = null;
   }
+  bosses = Object.keys(bossRecord);
 
   const userData = attackRecord.reduce<Record<UserName, AttackRecord[]>>((a, c) => {
     a[c.user_name] = a[c.user_name] || [];
     a[c.user_name].push(c);
     return a;
   }, {});
-
   const userBossData = Object.entries(userData).reduce<Record<UserName, Record<BossName, Damage>>>((a, c) => {
     a[c[0]] = c[1].reduce<Record<BossName, Damage>>((aa, cc) => {
-      aa[cc.boss.name] = (aa[cc.boss.name] || 0) + cc.damage;
+      const bossName = `${bossNameCorrect[cc.boss.name] ?? cc.boss.name}--${cc.boss.elemental_type_cn}`;
+      aa[bossName] = (aa[bossName] ?? 0) + cc.damage;
       return aa;
     }, {});
     return a;
   }, {});
-
   const usersSortByDamage = Object.keys(userBossData).sort((a, b) => {
     const aDamage = Object.values(userBossData[a]).reduce((a, c) => a + c, 0);
     const bDamage = Object.values(userBossData[b]).reduce((a, c) => a + c, 0);
@@ -129,7 +128,7 @@ const buildOption = () => {
 
   const userDayData = Object.entries(userData).reduce<Record<UserName, Record<LogDate, AttackRecord[]>>>((a, c) => {
     a[c[0]] = c[1].reduce<Record<LogDate, AttackRecord[]>>((aa, cc) => {
-      const date = new Date(Number(`${ cc.log_time }000`)).toLocaleDateString().replaceAll('/', '-');
+      const date = new Date(Number(`${cc.log_time}000`)).toLocaleDateString().replaceAll('/', '-');
       aa[date] = aa[date] || [];
       aa[date].push(cc);
       return aa;
@@ -141,21 +140,21 @@ const buildOption = () => {
   // @ts-ignore
   option.yAxis.data = usersSortByDamage;
   option.series = bosses.map(boss => {
-    const originalBossName = bossNameCorrect[boss.split('--')[0]] ?? boss.split('--')[0];
+
     const bossElement = boss.split('--')[1];
     return {
       name: boss,
       type: 'bar',
       stack: 'total',
       label: {
-        show: false,
+        show: true,
         fontSize: 14,
         formatter(res) {
-          return String(res.value).replace(/(\d)(?=(\d{3})+$)/g, '$1,');
+          return String((Number(res.value)/10000).toFixed(0))+'w';
         },
       },
-      color: `${ elementColors[bossElement] }d0`,
-      data: usersSortByDamage.map(user => userBossData[user][originalBossName] ?? 0),
+      color: `${elementColors[bossElement]}d0`,
+      data: usersSortByDamage.map(user => userBossData[user][boss] ?? 0),
     };
   });
   option.series.unshift({
@@ -165,12 +164,13 @@ const buildOption = () => {
     label: {
       show: true,
       position: 'right',
+      distance: 20,
       formatter(res) {
         return String(res.value).replace(/(\d)(?=(\d{3})+$)/g, '$1,');
       },
     },
     color: 'rgba(0,0,0,0)',
-    data: usersSortByDamage.map(user => Object.values(userBossData[user]).reduce((a, c) => a + c, 0)),
+    data: usersSortByDamage.map(user => Object.entries(userBossData[user]).filter(i => !unselectedLegend.includes(i[0])).map(i => i[1]).reduce((a, c) => a + c, 0)),
   });
 };
 const init = () => {
@@ -179,6 +179,16 @@ const init = () => {
   chart.setOption(option);
   window.addEventListener('resize', () => {
     chart.resize();
+  });
+  // @ts-ignore
+  chart.on('legendselectchanged', (params: { name: string }) => {
+    const index = unselectedLegend.findIndex(i => i === params.name);
+    if (index !== -1) {
+      unselectedLegend.splice(index, 1);
+    } else {
+      unselectedLegend.push(params.name)
+    }
+    reRender();
   });
 };
 
@@ -194,12 +204,12 @@ onMounted(() => {
 
 <style scoped>
 .fixed-top-left {
-    height: 60px;
-    margin: 40px 0 -80px 40px;
+  height: 60px;
+  margin: 40px 0 -80px 40px;
 }
 
 .chart {
-    height: 2200px;
-    padding-bottom: 60px;
+  height: 2200px;
+  padding-bottom: 60px;
 }
 </style>

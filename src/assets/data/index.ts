@@ -3,6 +3,7 @@ import b from './b.json';
 import c from './c.json';
 import d from './d.json';
 import e from './e.json';
+import f from './f.json';
 
 export default [
   { name: '绚烂泳池派对', data: a },
@@ -10,4 +11,5 @@ export default [
   { name: '课间屋顶', data: c },
   { name: '风驰电掣', data: d },
   { name: '魔法禁书库', data: e },
+  { name: '巨型书桌', data: f },
 ];
