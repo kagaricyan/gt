@@ -1,4 +1,5 @@
 <template>
+  <h1>工会总伤变化</h1>
   <div class="guild-total-damage-tendency" ref="chartDom"></div>
 </template>
 

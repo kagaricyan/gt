@@ -1,5 +1,6 @@
 <template>
   <div class="guild-attack-times">
+    <h1>公会出刀一览</h1>
     <label>
       选择赛季：
       <select v-model="selectedSeason">

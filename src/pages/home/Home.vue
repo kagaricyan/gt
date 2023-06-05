@@ -13,9 +13,9 @@
     <div class="chart" ref="chartRef"></div>
     <GuildTotalDamageTendency/>
     <PersonalTendency/>
-<!--    <GuildAttackTimes/>-->
-    <button @click="saveImage">生成图片，长按保存</button>
-    <img :src="src" alt="图片">
+    <GuildAttackTimes/>
+<!--    <button @click="saveImage">生成图片，长按保存</button>-->
+<!--    <img :src="src" alt="图片">-->
   </div>
 </template>
 
@@ -204,7 +204,7 @@ const reRender = () => {
 };
 
 onMounted(() => {
-  // init();
+  init();
 });
 </script>
 

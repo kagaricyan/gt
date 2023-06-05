@@ -1,5 +1,6 @@
 <template>
   <div class="personal-tendency">
+    <h1>个人总伤变化</h1>
     <div style="margin: 20px;">
       <label>
         选择用户：
@@ -11,7 +12,9 @@
       </label>
     </div>
     <div class="chartDom" ref="chartDom"></div>
+    <h1>个人每日出刀记录</h1>
     <div class="chartDom" ref="chartDom1"></div>
+    <h1>公会出刀时间分布</h1>
     <div class="chartDom" style="height: 2000px;" ref="chartDom2"></div>
   </div>
 </template>
