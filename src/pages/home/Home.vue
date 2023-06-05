@@ -11,6 +11,9 @@
       </label>
     </div>
     <div class="chart" ref="chartRef"></div>
+    <GuildTotalDamageTendency/>
+    <PersonalTendency/>
+<!--    <GuildAttackTimes/>-->
     <button @click="saveImage">生成图片，长按保存</button>
     <img :src="src" alt="图片">
   </div>
@@ -22,6 +25,9 @@ import attackRecords from '../../assets/data/index';
 import {AttackRecord} from '../../data';
 import * as echarts from 'echarts';
 import html2canvas from 'html2canvas';
+import GuildTotalDamageTendency from './components/GuildTotalDamageTendency.vue';
+import PersonalTendency from './components/PersonalTendency.vue';
+import GuildAttackTimes from './components/GuildAttackTimes.vue';
 
 type UserName = string;
 type LogDate = string;
@@ -198,7 +204,7 @@ const reRender = () => {
 };
 
 onMounted(() => {
-  init();
+  // init();
 });
 </script>
 
