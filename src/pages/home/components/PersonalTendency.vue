@@ -21,7 +21,20 @@ import {computed, onMounted, ref, shallowRef} from 'vue';
 import * as echarts from 'echarts';
 import attackRecords from '../../../assets/data/index';
 import {AttackRecord} from '../../../data';
-// 个人每天每个赛季图
+
+const bossNameCorrect: Record<string, string> = {
+  boss_nine_tailed_fox_guild: '水狐',
+  boss_invader_director_guild: '导演',
+  boss_harvester_guild_fury: '蚊子',
+  boss_graboid_guild_fury: '牛虫',
+  boss_minister_guild: '邓肯',
+  boss_robot_knight_new_guild: '帝国骑士',
+  boss_portrait_guild_43th: '画像',
+  boss_admiral_guild_43th_modified: '船长',
+  boss_admiral_guild_43th: '船长',
+  boss_mech_guild_fury_43th: '熊猫',
+};
+
 const seasonUserData = attackRecords.map(attackRecord => {
   const lastLogTime = Number(`${attackRecord.data[0].log_time}000`);
   const firstLogTime = Number(`${attackRecord.data[attackRecord.data.length - 1].log_time}000`);
@@ -130,6 +143,13 @@ const options1: echarts.EChartsOption = {
   ],
 };
 const options2: echarts.EChartsOption = {
+  tooltip: {
+    show: true,
+    formatter(res: any) {
+      const record = res.data[2].data as AttackRecord;
+      return `${record.user_name} : ${bossNameCorrect[record.boss.name]}`;
+    },
+  },
   xAxis: {
     splitNumber: 14,
     axisLine: {
@@ -208,13 +228,13 @@ const buildOption = () => {
         const dateTime = new Date(Number(`${i.log_time}000`));
         const date = dateTime.toLocaleDateString().replaceAll('/', '-');
         const time = dateTime.toLocaleTimeString();
-        const index = remainDateList.findIndex(i=>i===date);
-        return [index+1, `2023-01-01 ${time}`];
+        const index = remainDateList.findIndex(i => i === date);
+        return [index + 1, `2023-01-01 ${time}`, {data: i}];
       }),
     };
   });
   // @ts-ignore
-  options2.series[0].data = allDataGroupedByDate.map(i=>i.logTimes)[5];
+  options2.series[0].data = allDataGroupedByDate.map(i => i.logTimes)[5];
 };
 const init = () => {
   buildOption();
