@@ -27,7 +27,7 @@
             <template v-for="record in userDateData[1][date]">
               <div class="record">
                 <div class="damage">
-                  <span>{{bossNameCorrect[record.boss.name]}}Lv{{record.boss.level}}{{record.boss.elemental_type_cn}}</span>
+                  <span>{{bossNameCorrect[record.boss.name] || record.boss.name}}Lv{{record.boss.level}}{{record.boss.elemental_type_cn}}</span>
                   <span>:{{record.damage}}</span>
                 </div>
                 <div class="role-list">
@@ -50,10 +50,12 @@ import {AttackRecord} from '../../../data';
 import {computed, ref} from 'vue';
 const bossNameCorrect: Record<string, string> = {
   boss_nine_tailed_fox_guild: '水狐',
+  九尾狐佳岚: '水狐',
   boss_invader_director_guild: '导演',
   boss_harvester_guild_fury: '蚊子',
   boss_graboid_guild_fury: '牛虫',
   boss_minister_guild: '邓肯',
+  宰相邓肯: '邓肯',
   boss_robot_knight_new_guild: '帝国骑士',
   boss_portrait_guild_43th: '画像',
   boss_admiral_guild_43th_modified: '船长',
