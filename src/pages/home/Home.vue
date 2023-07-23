@@ -1,26 +1,52 @@
 <template>
   <div class="home">
-    <div style="margin: 20px;">
+    <div class="selector">
       <label>
-        选择赛季：
-        <select v-model="selectedSeason" @change="reRender">
-          <template v-for="item in attackRecords">
-            <option :value="item.name">{{ item.name }}</option>
-          </template>
-        </select>
+        <input v-model="viewType" type="radio" name="viewType" value="guildOverview">
+        总览
+      </label>
+      <label>
+        <input v-model="viewType" type="radio" name="viewType" value="guildTotalDamage">
+        公会总伤变化
+      </label>
+      <label>
+        <input v-model="viewType" type="radio" name="viewType" value="personalView">
+        个人视角
+      </label>
+      <label>
+        <input v-model="viewType" type="radio" name="viewType" value="attackDetail">
+        出刀一览
       </label>
     </div>
-    <div class="chart" ref="chartRef"></div>
-    <GuildTotalDamageTendency/>
-    <PersonalTendency/>
-    <GuildAttackTimes/>
-<!--    <button @click="saveImage">生成图片，长按保存</button>-->
-<!--    <img :src="src" alt="图片">-->
+    <template v-if="viewType==='guildOverview'">
+      <div style="margin: 20px;">
+        <label>
+          选择赛季：
+          <select v-model="selectedSeason" @change="reRender">
+            <template v-for="item in attackRecords">
+              <option :value="item.name">{{ item.name }}</option>
+            </template>
+          </select>
+        </label>
+      </div>
+      <div class="chart" ref="chartRef"></div>
+    </template>
+    <template v-else-if="viewType==='guildTotalDamage'">
+      <GuildTotalDamageTendency/>
+    </template>
+    <template v-else-if="viewType==='attackDetail'">
+      <GuildAttackTimes/>
+    </template>
+    <template v-else>
+      <PersonalTendency/>
+    </template>
+    <!--    <button @click="saveImage">生成图片，长按保存</button>-->
+    <!--    <img :src="src" alt="图片">-->
   </div>
 </template>
 
 <script lang="ts" setup>
-import {computed, onMounted, ref} from 'vue';
+import {computed, nextTick, onMounted, ref, watch} from 'vue';
 import attackRecords from '../../assets/data/index';
 import {AttackRecord} from '../../data';
 import * as echarts from 'echarts';
@@ -28,20 +54,30 @@ import html2canvas from 'html2canvas';
 import GuildTotalDamageTendency from './components/GuildTotalDamageTendency.vue';
 import PersonalTendency from './components/PersonalTendency.vue';
 import GuildAttackTimes from './components/GuildAttackTimes.vue';
+import {bossNameCorrect} from "./bossNameCorrect";
 
 type UserName = string;
 type LogDate = string;
 type BossName = string;
 type Damage = number;
 
+const viewType = ref('guildOverview');
+
+watch(()=>viewType.value, res=>{
+  if (res==='guildOverview') {
+    nextTick(()=>{
+      init();
+    })
+  }
+})
 const selectedSeason = ref(attackRecords[attackRecords.length - 1].name);
 
 const currentAttackRecord = computed<AttackRecord[]>(() => attackRecords.find(i => i.name === selectedSeason.value)!.data);
 
 const src = ref('');
 const saveImage = async () => {
-  const el = document.querySelector('.chart')! as HTMLElement;
-  src.value = (await html2canvas(el)).toDataURL();
+  const el = document.querySelector('#testaaa')! as HTMLElement;
+  src.value = (await html2canvas(el, {useCORS: true, width: 2700})).toDataURL();
 };
 const elementColors: Record<string, string> = {
   光: '#ffd71c',
@@ -54,20 +90,7 @@ const elementColors: Record<string, string> = {
 
 let chart: echarts.EChartsType;
 const chartRef = ref<HTMLElement>();
-const bossNameCorrect: Record<string, string> = {
-  boss_nine_tailed_fox_guild: '水狐',
-  九尾狐佳岚: '水狐',
-  boss_invader_director_guild: '导演',
-  boss_harvester_guild_fury: '蚊子',
-  boss_graboid_guild_fury: '牛虫',
-  boss_minister_guild: '邓肯',
-  宰相邓肯: '邓肯',
-  boss_robot_knight_new_guild: '帝国骑士',
-  boss_portrait_guild_43th: '画像',
-  boss_admiral_guild_43th_modified: '船长',
-  boss_admiral_guild_43th: '船长',
-  boss_mech_guild_fury_43th: '熊猫',
-};
+
 const option: echarts.EChartsOption = {
   tooltip: {
     trigger: 'axis',
@@ -114,7 +137,6 @@ const buildOption = () => {
     bossRecord[bossName] = null;
   }
   bosses = Object.keys(bossRecord);
-
   const userData = attackRecord.reduce<Record<UserName, AttackRecord[]>>((a, c) => {
     a[c.user_name] = a[c.user_name] || [];
     a[c.user_name].push(c);
@@ -143,7 +165,6 @@ const buildOption = () => {
     }, {});
     return a;
   }, {});
-  console.log(userDayData);
 
   // @ts-ignore
   option.yAxis.data = usersSortByDamage;
@@ -158,7 +179,7 @@ const buildOption = () => {
         show: true,
         fontSize: 14,
         formatter(res) {
-          return String((Number(res.value)/10000).toFixed(0))+'w';
+          return String((Number(res.value) / 10000).toFixed(0)) + 'w';
         },
       },
       color: `${elementColors[bossElement]}d0`,
@@ -211,9 +232,8 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.fixed-top-left {
-  height: 60px;
-  margin: 40px 0 -80px 40px;
+label {
+  margin-right: 20px;
 }
 
 .chart {

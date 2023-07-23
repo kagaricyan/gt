@@ -14,29 +14,17 @@
     <div class="chartDom" ref="chartDom"></div>
     <h1>个人每日出刀记录</h1>
     <div class="chartDom" ref="chartDom1"></div>
-    <h1>公会出刀时间分布</h1>
-    <div class="chartDom" style="height: 2000px;" ref="chartDom2"></div>
+<!--    <h1>公会出刀时间分布</h1>-->
+<!--    <div class="chartDom" style="height: 2000px;" ref="chartDom2"></div>-->
   </div>
 </template>
 
 <script setup lang="ts">
-import {computed, onMounted, ref, shallowRef} from 'vue';
+import {onMounted, ref} from 'vue';
 import * as echarts from 'echarts';
 import attackRecords from '../../../assets/data/index';
 import {AttackRecord} from '../../../data';
-
-const bossNameCorrect: Record<string, string> = {
-  boss_nine_tailed_fox_guild: '水狐',
-  boss_invader_director_guild: '导演',
-  boss_harvester_guild_fury: '蚊子',
-  boss_graboid_guild_fury: '牛虫',
-  boss_minister_guild: '邓肯',
-  boss_robot_knight_new_guild: '帝国骑士',
-  boss_portrait_guild_43th: '画像',
-  boss_admiral_guild_43th_modified: '船长',
-  boss_admiral_guild_43th: '船长',
-  boss_mech_guild_fury_43th: '熊猫',
-};
+import {bossNameCorrect} from "../bossNameCorrect";
 
 const seasonUserData = attackRecords.map(attackRecord => {
   const lastLogTime = Number(`${attackRecord.data[0].log_time}000`);
@@ -243,17 +231,17 @@ const init = () => {
   buildOption();
   chart = echarts.init(chartDom.value!);
   chart1 = echarts.init(chartDom1.value!);
-  chart2 = echarts.init(chartDom2.value!);
+  // chart2 = echarts.init(chartDom2.value!);
   chart.setOption(options);
   chart1.setOption(options1);
-  chart2.setOption(options2);
+  // chart2.setOption(options2);
 
 };
 const reRender = () => {
   buildOption();
   chart!.setOption(options);
   chart1!.setOption(options1);
-  chart2!.setOption(options2);
+  // chart2!.setOption(options2);
 };
 onMounted(() => {
   init();

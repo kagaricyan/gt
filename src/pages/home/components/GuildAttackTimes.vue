@@ -1,6 +1,5 @@
 <template>
   <div class="guild-attack-times">
-    <h1>公会出刀一览</h1>
     <label>
       选择赛季：
       <select v-model="selectedSeason">
@@ -9,7 +8,7 @@
         </template>
       </select>
     </label>
-    <div class="grid-table">
+    <div class="grid-table" :style="{gridTemplateColumns: `repeat(${currentSeasonData.remainDateList.length +1 }, 1fr)`}">
       <div class="grid-item-col-row-desc">
         <span>用户\日期</span>
       </div>
@@ -27,8 +26,10 @@
             <template v-for="record in userDateData[1][date]">
               <div class="record">
                 <div class="damage">
-                  <span>{{bossNameCorrect[record.boss.name] || record.boss.name}}Lv{{record.boss.level}}{{record.boss.elemental_type_cn}}</span>
-                  <span>:{{record.damage}}</span>
+                  <span>{{ bossNameCorrect[record.boss.name] || record.boss.name }}Lv{{
+                      record.boss.level
+                    }}{{ record.boss.elemental_type_cn }}</span>
+                  <span>:{{ record.damage }}</span>
                 </div>
                 <div class="role-list">
                   <template v-for="role in record.role_list">
@@ -48,20 +49,7 @@
 import attackRecords from '../../../assets/data';
 import {AttackRecord} from '../../../data';
 import {computed, ref} from 'vue';
-const bossNameCorrect: Record<string, string> = {
-  boss_nine_tailed_fox_guild: '水狐',
-  九尾狐佳岚: '水狐',
-  boss_invader_director_guild: '导演',
-  boss_harvester_guild_fury: '蚊子',
-  boss_graboid_guild_fury: '牛虫',
-  boss_minister_guild: '邓肯',
-  宰相邓肯: '邓肯',
-  boss_robot_knight_new_guild: '帝国骑士',
-  boss_portrait_guild_43th: '画像',
-  boss_admiral_guild_43th_modified: '船长',
-  boss_admiral_guild_43th: '船长',
-  boss_mech_guild_fury_43th: '熊猫',
-};
+import {bossNameCorrect} from "../bossNameCorrect";
 
 const seasonUserDateData = attackRecords.map(attackRecord => {
   const lastLogTime = Number(`${attackRecord.data[0].log_time}000`);
@@ -102,13 +90,17 @@ const currentSeasonData = computed(() => {
 .guild-attack-times {
   padding: 20px;
 }
+
 .grid-table {
+  position: relative;
   display: grid;
-  grid-template-columns: repeat(15, 1fr);
   grid-auto-columns: auto;
   margin: 20px;
 }
+
 .grid-item-date, .grid-item-col-row-desc {
+  position: sticky;
+  top: 0;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -116,10 +108,13 @@ const currentSeasonData = computed(() => {
   min-width: 120px;
   height: 40px;
   border: solid 1px #dfcda3;
+  background-color: #F6F3EDF2;
 }
+
 .grid-item-date {
   border-left: none;
 }
+
 .grid-item-user {
   display: flex;
   justify-content: center;
@@ -142,10 +137,12 @@ const currentSeasonData = computed(() => {
   align-items: center;
   margin: 10px 0;
 }
+
 .grid-item-records .record .role-list {
   display: flex;
   flex-wrap: nowrap;
 }
+
 .grid-item-records .record img {
   display: inline-block;
   width: 40px;
