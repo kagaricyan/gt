@@ -18,4 +18,8 @@ export const bossNameCorrect: Record<string, string> = {
     机械人埃里娜: '老骑士',
     '改良疯狂熊猫MK-三型': '熊猫',
     '恶魔首领': '恶魔',
+    'boss_graboid_guild_fury_46th': '牛虫',
+    'boss_harvester_guild_fury_58th': '蚊子',
+    'boss_wolf_guild_58th': '哥布林',
+    '狂暴沙漠牛虫': '牛虫',
 };
