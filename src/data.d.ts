@@ -1,9 +1,3 @@
-declare module '*attack-record.json' {
-  import { AttackRecord } from './data';
-  const data: AttackRecord[];
-  export default data;
-}
-
 export interface AttackRecord {
   server_time: number;
   log_time: number;

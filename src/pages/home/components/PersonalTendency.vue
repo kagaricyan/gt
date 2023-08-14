@@ -20,34 +20,40 @@
 </template>
 
 <script setup lang="ts">
-import {onMounted, ref} from 'vue';
+import {computed, onMounted, ref} from 'vue';
 import * as echarts from 'echarts';
-import attackRecords from '../../../assets/data/index';
 import {AttackRecord} from '../../../data';
 import {bossNameCorrect} from "../bossNameCorrect";
+import {useStore} from "../../../store";
 
-const seasonUserData = attackRecords.map(attackRecord => {
-  const lastLogTime = Number(`${attackRecord.data[0].log_time}000`);
-  const firstLogTime = Number(`${attackRecord.data[attackRecord.data.length - 1].log_time}000`);
-  const onDayMillSeconds = 24 * 60 * 60 * 1000;
+const attackRecords = ref<{name: string; data: AttackRecord[]}[]>([]);
 
-  const remainDateList: string[] = [];
-  for (let i = firstLogTime; i <= lastLogTime; i = i + onDayMillSeconds) {
-    const date = new Date(i).toLocaleDateString().replaceAll('/', '-');
-    remainDateList.push(date);
-  }
-  return {
-    season: attackRecord.name,
-    remainDateList,
-    userData: attackRecord.data.reduce<Record<string, AttackRecord[]>>((a, c) => {
-      a[c.user_name] = a[c.user_name] || [];
-      a[c.user_name].push(c);
-      return a;
-    }, {}),
-  };
-});
+const seasonUserData = computed(()=>{
+  return attackRecords.value.map(attackRecord => {
+    const lastLogTime = Number(`${attackRecord.data[0].log_time}000`);
+    const firstLogTime = Number(`${attackRecord.data[attackRecord.data.length - 1].log_time}000`);
+    const onDayMillSeconds = 24 * 60 * 60 * 1000;
+
+    const remainDateList: string[] = [];
+    for (let i = firstLogTime; i <= lastLogTime; i = i + onDayMillSeconds) {
+      const date = new Date(i).toLocaleDateString().replaceAll('/', '-');
+      remainDateList.push(date);
+    }
+    return {
+      season: attackRecord.name,
+      remainDateList,
+      userData: attackRecord.data.reduce<Record<string, AttackRecord[]>>((a, c) => {
+        a[c.user_name] = a[c.user_name] || [];
+        a[c.user_name].push(c);
+        return a;
+      }, {}),
+    };
+  })
+})
 const selectedUser = ref('');
-const allUsers = Array.from(new Set(new Set(attackRecords.map(i => i.data.map(t => t.user_name)).flat())));
+const allUsers = computed(()=>{
+  return Array.from(new Set(new Set(attackRecords.value.map(i => i.data.map(t => t.user_name)).flat())));
+})
 const options: echarts.EChartsOption = {
   tooltip: {
     trigger: 'axis',
@@ -169,16 +175,16 @@ let chart2: echarts.EChartsType;
 
 const buildOption = () => {
   // @ts-ignore
-  options.xAxis.data = seasonUserData.map(i => i.season);
+  options.xAxis.data = seasonUserData.value.map(i => i.season);
   // @ts-ignore
-  options.series[0].data = seasonUserData.map(seasonData => {
+  options.series[0].data = seasonUserData.value.map(seasonData => {
     return (seasonData.userData[selectedUser.value] || []).reduce((a, c) => a + c.damage, 0);
   });
 
   // @ts-ignore
   options1.xAxis.data = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14].map(i => `Day${i}`);
   // @ts-ignore
-  options1.series = seasonUserData.map(seasonData => {
+  options1.series = seasonUserData.value.map(seasonData => {
     const attackRecord = seasonData.userData[selectedUser.value] || [];
     const groupedByDateData = attackRecord.reduce<Record<string, AttackRecord[]>>((a, c) => {
       const date = new Date(Number(`${c.log_time}000`)).toLocaleDateString().replaceAll('/', '-');
@@ -201,9 +207,9 @@ const buildOption = () => {
     };
   });
   // @ts-ignore
-  options1.legend.data = seasonUserData.map(i => i.season);
+  options1.legend.data = seasonUserData.value.map(i => i.season);
 
-  const allDataGroupedByDate = attackRecords.map(season => {
+  const allDataGroupedByDate = attackRecords.value.map(season => {
     const lastLogTime = Number(`${season.data[0].log_time}000`);
     const firstLogTime = Number(`${season.data[season.data.length - 1].log_time}000`);
     const onDayMillSeconds = 24 * 60 * 60 * 1000;
@@ -244,6 +250,7 @@ const reRender = () => {
   // chart2!.setOption(options2);
 };
 onMounted(() => {
+  attackRecords.value = useStore().attackRecords;
   init();
 });
 </script>

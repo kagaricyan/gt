@@ -8,7 +8,8 @@
         </template>
       </select>
     </label>
-    <div class="grid-table" :style="{gridTemplateColumns: `repeat(${currentSeasonData.remainDateList.length +1 }, 1fr)`}">
+    <div class="grid-table"
+         :style="{gridTemplateColumns: `repeat(${currentSeasonData.remainDateList.length +1 }, 1fr)`}">
       <div class="grid-item-col-row-desc">
         <span>用户\日期</span>
       </div>
@@ -46,44 +47,52 @@
 </template>
 
 <script setup lang="ts">
-import attackRecords from '../../../assets/data';
 import {AttackRecord} from '../../../data';
-import {computed, ref} from 'vue';
+import {computed, onMounted, ref} from 'vue';
 import {bossNameCorrect} from "../bossNameCorrect";
+import {useStore} from "../../../store";
 
-const seasonUserDateData = attackRecords.map(attackRecord => {
-  const lastLogTime = Number(`${attackRecord.data[0].log_time}000`);
-  const firstLogTime = Number(`${attackRecord.data[attackRecord.data.length - 1].log_time}000`);
-  const onDayMillSeconds = 24 * 60 * 60 * 1000;
+const attackRecords = computed(()=>{
+  return useStore().attackRecords;
+})
+const seasonUserDateData = computed(()=>{
+  return useStore().attackRecords.map(attackRecord => {
+    const lastLogTime = Number(`${attackRecord.data[0].log_time}000`);
+    const firstLogTime = Number(`${attackRecord.data[attackRecord.data.length - 1].log_time}000`);
+    const onDayMillSeconds = 24 * 60 * 60 * 1000;
 
-  const remainDateList: string[] = [];
-  for (let i = firstLogTime; i <= lastLogTime; i = i + onDayMillSeconds) {
-    const date = new Date(i).toLocaleDateString().replaceAll('/', '-');
-    remainDateList.push(date);
-  }
+    const remainDateList: string[] = [];
+    for (let i = firstLogTime; i <= lastLogTime; i = i + onDayMillSeconds) {
+      const date = new Date(i).toLocaleDateString().replaceAll('/', '-');
+      remainDateList.push(date);
+    }
 
-  return {
-    season: attackRecord.name,
-    remainDateList,
-    userData: attackRecord.data.reduce<Record<string, Record<string, AttackRecord[]>>>((a, c) => {
-      const date = new Date(Number(`${c.log_time}000`)).toLocaleDateString().replaceAll('/', '-');
-      a[c.user_name] = a[c.user_name] || {};
-      a[c.user_name][date] = a[c.user_name][date] || [];
-      a[c.user_name][date].push(c);
-      return a;
-    }, {}),
-  };
-});
+    return {
+      season: attackRecord.name,
+      remainDateList,
+      userData: attackRecord.data.reduce<Record<string, Record<string, AttackRecord[]>>>((a, c) => {
+        const date = new Date(Number(`${c.log_time}000`)).toLocaleDateString().replaceAll('/', '-');
+        a[c.user_name] = a[c.user_name] || {};
+        a[c.user_name][date] = a[c.user_name][date] || [];
+        a[c.user_name][date].push(c);
+        return a;
+      }, {}),
+    };
+  });
+})
 
-const selectedSeason = ref(attackRecords[attackRecords.length - 1].name);
+const selectedSeason = ref('');
 
 const currentSeasonData = computed(() => {
-  const seasonData = seasonUserDateData.find(i => i.season === selectedSeason.value);
+  const seasonData = seasonUserDateData.value.find(i => i.season === selectedSeason.value);
   return {
     remainDateList: seasonData?.remainDateList || [],
     userDateData: seasonData?.userData || {},
   };
 });
+onMounted(() => {
+  selectedSeason.value = attackRecords.value[attackRecords.value.length - 1].name;
+})
 </script>
 
 <style scoped>

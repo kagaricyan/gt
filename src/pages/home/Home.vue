@@ -29,7 +29,7 @@
           </select>
         </label>
       </div>
-      <div class="chart" ref="chartRef"></div>
+      <div class="chart" id="image" ref="chartRef"></div>
     </template>
     <template v-else-if="viewType==='guildTotalDamage'">
       <GuildTotalDamageTendency/>
@@ -40,14 +40,13 @@
     <template v-else>
       <PersonalTendency/>
     </template>
-    <!--    <button @click="saveImage">生成图片，长按保存</button>-->
-    <!--    <img :src="src" alt="图片">-->
+    <button @click="saveImage">生成图片，长按保存</button>
+    <img :src="src" alt="图片">
   </div>
 </template>
 
 <script lang="ts" setup>
 import {computed, nextTick, onMounted, ref, watch} from 'vue';
-import attackRecords from '../../assets/data/index';
 import {AttackRecord} from '../../data';
 import * as echarts from 'echarts';
 import html2canvas from 'html2canvas';
@@ -55,28 +54,30 @@ import GuildTotalDamageTendency from './components/GuildTotalDamageTendency.vue'
 import PersonalTendency from './components/PersonalTendency.vue';
 import GuildAttackTimes from './components/GuildAttackTimes.vue';
 import {bossNameCorrect} from "./bossNameCorrect";
+import {useStore} from "../../store";
 
 type UserName = string;
 type LogDate = string;
 type BossName = string;
 type Damage = number;
 
+const attackRecords = ref<{ name: string; data: AttackRecord[] }[]>([]);
 const viewType = ref('guildOverview');
 
-watch(()=>viewType.value, res=>{
-  if (res==='guildOverview') {
-    nextTick(()=>{
+watch(() => viewType.value, res => {
+  if (res === 'guildOverview') {
+    nextTick(() => {
       init();
     })
   }
 })
-const selectedSeason = ref(attackRecords[attackRecords.length - 1].name);
+const selectedSeason = ref('');
 
-const currentAttackRecord = computed<AttackRecord[]>(() => attackRecords.find(i => i.name === selectedSeason.value)!.data);
+const currentAttackRecord = computed<AttackRecord[]>(() => attackRecords.value.find(i => i.name === selectedSeason.value)!.data);
 
 const src = ref('');
 const saveImage = async () => {
-  const el = document.querySelector('#testaaa')! as HTMLElement;
+  const el = document.querySelector('#image')! as HTMLElement;
   src.value = (await html2canvas(el, {useCORS: true, width: 2700})).toDataURL();
 };
 const elementColors: Record<string, string> = {
@@ -130,7 +131,7 @@ const buildOption = () => {
   for (let i = 0; i < attackRecord.length; i++) {
     if (Object.keys(bossRecord).length >= 4) {
       bosses = Object.keys(bossRecord);
-      break;
+      // break;
     }
     const originalBoss = attackRecord[i].boss;
     const bossName = `${bossNameCorrect[originalBoss.name] ?? originalBoss.name}--${originalBoss.elemental_type_cn}`;
@@ -226,7 +227,10 @@ const reRender = () => {
   chart!.setOption(option);
 };
 
-onMounted(() => {
+onMounted(async () => {
+  const store = useStore();
+  attackRecords.value = store.attackRecords;
+  selectedSeason.value = store.attackRecords[store.attackRecords.length - 1]?.name || ''
   init();
 });
 </script>
